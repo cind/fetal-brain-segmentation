@@ -37,17 +37,17 @@ class ModelParameters():
         self.batch_size = 12
         self.shuffle_buffer = 100
         self.learning_rate = learning_rate
-        # Training parameters 
+        # Training parameters
         self.num_epochs = num_epochs
         # Binarization threshold
         self.bin_threshold = bin_threshold
         # Training loss
         self.training_loss = training_loss
         self.loss_options = {'weight_alpha': 0.9}
-    
+
     def print_recap(self):
         return
-    
+
 
 
 class Config(object):
@@ -116,13 +116,13 @@ class Config(object):
         self.num_cpu = self.set_CPU()
         self.model_params = model_params
         self.model_params.batch_size = self.set_batch_size()
-        
+
         self.root = Path(root)
         self.add_dir(self.root)
         # The name of the specific run
         self.experiment = experiment
         # CSV file that stores train/test split
-        self.train_test_csv = self.root / "models" / (self.experiment + ".csv") 
+        self.train_test_csv = self.root / "models" / (self.experiment + ".csv")
 
         # Directory where config.txt is saved
         if continued_training:
@@ -138,7 +138,7 @@ class Config(object):
         # testing conditions
         else:
             self.main_dir = self.root / "models" / model
-                
+
 
         ### IMAGES ###
         # Root directory for the images
@@ -148,8 +148,8 @@ class Config(object):
             data_dir = self.root / "Data" / datasource
         # Directory that contains the raw images and the segmented masks (patientid.nii.gz & patientid_seg.nii.gz)
         self.data_raw = data_dir / "raw"
-        self.add_dir(self.data_raw) 
-        # Directory that contains the preprocessed images 
+        self.add_dir(self.data_raw)
+        # Directory that contains the preprocessed images
         self.data_nh = data_dir / "preprocessed/noheader/"
         self.add_dir(self.data_nh)
         # Directory that contains the preprocessed images used for model training
@@ -178,8 +178,8 @@ class Config(object):
                 self.type = 'training'
         else:
             model_dir = self.root / "models" / model
-            # Directory that contains the model to load: 
-            # will be the main directory, not one with the timestamps, 
+            # Directory that contains the model to load:
+            # will be the main directory, not one with the timestamps,
             # so copy in main directory the model to use for predictions
             self.modelDir = self.choose_model_dir(model_dir / "model", which_model)
             # self.add_dir(self.modelDir) #TODO this should exist!
@@ -207,7 +207,7 @@ class Config(object):
         # Tensorboard
         if train:
             self.tfboardDir = model_dir / "tfboard"
-            self.add_dir(self.tfboardDir) 
+            self.add_dir(self.tfboardDir)
 
         ### PREDICTIONS ###
         if predict:
@@ -243,14 +243,14 @@ class Config(object):
                 "adrenoleukodystrophy":2,
                 "BG_normal":3,
                 "normal":4,
-                "Normal": 4, 
+                "Normal": 4,
                 "CADASIL":56,
                 "CNS_lymphoma":5,
                 "High_Grade_Glioma":6,
                 "HIV_Encephalopathy":7,
                 "Low_Grade_Glioma":8,
                 "metastatic_disease":9,
-                "Metastases": 9, 
+                "Metastases": 9,
                 "migraine":10,
                 "multiple_sclerosis_inactive":11,
                 "neuromyelitis_optica":12,
@@ -300,7 +300,7 @@ class Config(object):
                 "Infarct_subacute":54,
                 "Carbon_Monoxide_chronic":55
                 }
-        
+
         # Elastic transform parameter
         self.ep = {
             'rotation_x': 0.001,
@@ -316,7 +316,7 @@ class Config(object):
             'df_y': 0.1,
             'df_z': 0.1
         }
-    
+
 
     ### HELPER FUNCTIONS ###
     def preprocess(self, force_preprocess=False, CV=None, create_csv=False):
@@ -333,7 +333,7 @@ class Config(object):
         from image.process_image import strip_header_dir, resample_to_1mm_dir
         if create_csv:
             image_list = [im.name.split('.nii')[0] for im in self.data_raw.iterdir()
-                if im.name.endswith(('.nii.gz', '.nii')) 
+                if im.name.endswith(('.nii.gz', '.nii'))
                     and not im.name.endswith(('_seg.nii.gz', '_seg.nii'))]
             n = len(image_list)
             _ = pd.DataFrame(
@@ -397,7 +397,7 @@ class Config(object):
             stats_file_name = f'{self.diceDir}/stats_{self.experiment}_th_{self.model_params.bin_threshold}.csv'
             compute_stats_dir(self.data_raw, self.thresholdedDir / str(self.model_params.bin_threshold), stats_file_name, num_processes=self.num_cpu)
             print(stats_file_name)
-        print("Done!")            
+        print("Done!")
 
     def update_for_CV(self, fold:int):
         """Updates `self.train_test_csv` to match cross-validation experiment
@@ -417,7 +417,7 @@ class Config(object):
             if folds == []:
                 raise FileNotFoundError(f'No CV folds csv available. Create one by running '
                     f'`c.preprocess(CV=(n_folds,None))`')
-            raise FileNotFoundError(f'No csv found for {fold=}. Available {folds=}.')
+            raise FileNotFoundError(f'No csv found for {fold}. Available {folds}.')
         self.train_test_csv = new_csv
 
     def binarize_and_stats(self, bin_threshold):
@@ -449,15 +449,15 @@ class Config(object):
         if os.path.exists(folder) and os.path.isdir(folder):
             shutil.rmtree(folder)
         os.mkdir(folder)
-    
+
     def add_dir(self, folder):
         # if not self.read_existing:
         self.list_folders.append(folder)
-    
+
     def make_dirs(self, list_folders):
         for folder in list_folders:
             folder.mkdir(parents=True, exist_ok=True)
-    
+
     def splitfile_exist(self):
         if not os.path.isfile(self.train_test_csv):
             sys.exit(f"The split file does not exist at this location:\n{self.train_test_csv}")
@@ -568,7 +568,7 @@ class Config(object):
             recap_dic["Epochs:"]        = self.model_params.num_epochs
             recap_dic["Batch size:"]    = self.model_params.batch_size
             recap_dic["Learning rate:"] = self.model_params.learning_rate
-        
+
         recap = f"\n{line*2} Parameters {line*2}\n"
         for key, value in recap_dic.items():
             recap += f"{key:<15}{value}\n"
@@ -640,4 +640,4 @@ class Config(object):
         memory_free_info = _output_to_list(subprocess.check_output(COMMAND.split()))[1:]
         memory_free_values = [int(x.split()[0]) for i, x in enumerate(memory_free_info)]
         return memory_free_values
-    
+
